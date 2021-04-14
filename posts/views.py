@@ -43,7 +43,7 @@ def profile(request, username):
         return render(request, 'profile.html', {'author': author,
                                                 'page': page,
                                                 'following': following})
-    except: # noqa
+    except Exception:
         return render(request, 'profile.html', {'author': author,
                                                 'page': page})
 
