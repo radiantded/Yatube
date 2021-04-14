@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Записи пользователя{% endblock %}
+{% block content %}
+{% load user_filters %}
+
+<main role="main" class="container">
+  <div class="row">
+    <div class="col-md-3 mb-3 mt-1">
+      <div class="card">
+        <div class="card-body">
+          <div class="h2">
+            {{ post.author.get_full_name }}
+          </div>
+          <div class="h6 text-muted">
+            Имя пользователя: <a href="{% url 'profile' post.author.username %}">{{ post.author.username }}</a>
+          </div>
+        </div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            <div class="h6 text-muted">
+              Подписчиков: {{ post.author.following.count }} <br />
+              Подписан: {{ post.author.follower.count }}
+            </div>
+          </li>
+          <li class="list-group-item">
+            <div class="h6 text-muted">
+              Записей: {{ post.author.posts.count }}
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-md-9">
+      {% include "post_item.html" with post=post %}
+      {% if request.user.is_authenticated %}
+        <div class="card my-4">
+            <form method="post" action="{% url 'add_comment' username=post.author.username post_id=post.id %}">
+                {% csrf_token %}
+                <h5 class="card-header">Добавить комментарий:</h5>
+                <div class="card-body">
+                    <div class="form-group">
+                        {{ form.text|addclass:"form-control" }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Отправить</button>
+                </div>
+            </form>
+        </div>
+      {% endif %}
+      {% include 'comments.html' %}
+</main>
+{% endblock %}
