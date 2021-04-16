@@ -38,25 +38,35 @@ def profile(request, username):
     page = Paginator(
         author.posts.all(),
         POSTS_PER_PAGE).get_page(request.GET.get('page'))
-    try:
-        following = Follow.objects.get(author=author, user=request.user)
-        return render(request, 'profile.html', {'author': author,
-                                                'page': page,
-                                                'following': following})
-    except Exception:
-        return render(request, 'profile.html', {'author': author,
-                                                'page': page})
+    
+    if request.user.is_authenticated:
+        following = Follow.objects.filter(author=author,
+                                          user=request.user)
+        if following.exists():
+            return render(request, 'profile.html', {'author': author,
+                                                    'page': page,
+                                                    'following': following})
+    return render(request, 'profile.html', {'author': author,
+                                            'page': page})
 
 
 def post_view(request, username, post_id):
     post = get_object_or_404(Post, id=post_id, author__username=username)
     form = CommentForm(request.POST or None)
     comments = Comment.objects.filter(post=post)
+    if not request.user.is_authenticated:
+        return render(request, 'post.html', {'author': post.author,
+                                             'comments': comments,
+                                             'form': form,
+                                             'post': post})
+    following = Follow.objects.filter(author__username=username,
+                                      user=request.user).exists()
     context = {
         'author': post.author,
         'comments': comments,
         'form': form,
-        'post': post
+        'post': post,
+        'following': following
     }
     return render(request, 'post.html', context=context)
 
@@ -64,12 +74,11 @@ def post_view(request, username, post_id):
 @login_required
 def add_comment(request, username, post_id):
     form = CommentForm(request.POST or None)
-    if not form.is_valid():
-        return redirect('post', username=username, post_id=post_id)
-    comment = form.save(commit=False)
-    comment.author = request.user
-    comment.post_id = post_id
-    comment.save()
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.author = request.user
+        comment.post_id = post_id
+        comment.save()
     return redirect('post', username=username, post_id=post_id)
 
 
@@ -115,13 +124,16 @@ def follow_index(request):
 @login_required
 def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
-    if request.user != author:
-        Follow.objects.get_or_create(author=author, user=request.user)
+    if request.user != author and not Follow.objects.filter(
+        author=author, user=request.user
+    ).exists():
+        Follow.objects.create(author=author, user=request.user)
     return redirect('profile', username=username)
 
 
 @login_required
 def profile_unfollow(request, username):
-    author = get_object_or_404(User, username=username)
-    Follow.objects.filter(author=author, user=request.user).delete()
+    get_object_or_404(Follow,
+                      author__username=username,
+                      user=request.user).delete()
     return redirect('profile', username=username)

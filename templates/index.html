@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 {% block title %}Последние обновления на сайте{% endblock %}
-{% load cache %}
-{% cache 20 index_page %}
-{% endcache %} 
+<!-- {% load cache %}
+{% cache 200 index_page %}
+{% endcache %}  -->
 {% block header %}Последние обновления на сайте{% endblock %}
 {% block content %}
 
     <div class="col-md-12">
         {% include "menu.html" with post=post %}
         {% for post in page %}
-            {% include "post_item.html" with post=post %}
+            {% include "post_item.html" %}
             {% if not forloop.last %}{% endif %}
         {% endfor %}
     </div>
     
     {% include "paginator.html" %}
 
-{% endblock %} 
+{% endblock %}

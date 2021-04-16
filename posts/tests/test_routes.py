@@ -39,6 +39,10 @@ class RoutesURLTests(TestCase):
                 GROUP_SLUG]):
             f'/group/{GROUP_SLUG}/',
             reverse('profile', kwargs={'username': USERNAME}): f'/{USERNAME}/',
+            reverse('follow_index'): '/follow/',
+            reverse('profile_follow', args=[USERNAME]): f'/{USERNAME}/follow/',
+            reverse('profile_unfollow',
+                    args=[USERNAME]): f'/{USERNAME}/unfollow/',
         }
         for route, expected_url in routes.items():
             self.assertEqual(route, expected_url)

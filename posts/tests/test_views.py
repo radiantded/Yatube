@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -9,6 +10,7 @@ USERNAME = 'Zhorik666'
 USERNAME_2 = 'Sanya_Pudge'
 USERNAME_3 = 'Borodavka'
 NEW_POST_URL = reverse('new_post')
+FOLLOW_INDEX_URL = reverse('follow_index')
 PROFILE_URL = reverse('profile', kwargs={'username': USERNAME})
 PROFILE_FOLLOW_URL = reverse('profile_follow', args=[USERNAME])
 PROFILE_UNFOLLOW_URL = reverse('profile_unfollow', args=[USERNAME])
@@ -26,6 +28,13 @@ class PostTests(TestCase):
         cls.user = User.objects.create(username=USERNAME)
         cls.user_2 = User.objects.create(username=USERNAME_2)
         cls.user_3 = User.objects.create(username=USERNAME_3)
+        cls.guest_client = Client()
+        cls.authorized_client = Client()
+        cls.authorized_client_2 = Client()
+        cls.authorized_client.force_login(cls.user)
+        cls.authorized_client_2.force_login(cls.user_2)
+        cls.authorized_client_2.get(PROFILE_FOLLOW_URL)
+
         cls.group = Group.objects.create(
             title='Группа',
             description='Описание',
@@ -48,24 +57,18 @@ class PostTests(TestCase):
             }
         )
 
-    def setUp(self):
-        self.guest_client = Client()
-        self.authorized_client = Client()
-        self.authorized_client_2 = Client()
-        self.authorized_client.force_login(self.user)
-        self.authorized_client_2.force_login(self.user_2)
-
     def test_templates_expected_context(self):
         """Шаблоны страниц формируются с правильным контекстом"""
         templates_urls = [
             [GROUP_POSTS_URL, 'page'],
             [INDEX_URL, 'page'],
             [PROFILE_URL, 'page'],
-            [self.POST_URL, 'post']
+            [self.POST_URL, 'post'],
+            [FOLLOW_INDEX_URL, 'page']
         ]
         for url, context in templates_urls:
             with self.subTest(url=url):
-                response = self.guest_client.get(url)
+                response = self.authorized_client_2.get(url)
                 if context == 'page':
                     self.assertEqual(len(response.context['page']), 1)
                     post = response.context['page'][0]
@@ -117,31 +120,40 @@ class PostTests(TestCase):
                 )
 
     def test_templates_expected_author_context(self):
-        """Шаблон страницы профиля формируются с правильным контекстом"""
-        self.assertEqual(
-            self.guest_client.get(PROFILE_URL).context['author'].username,
-            self.user.username
-        )
+        """Шаблон страницы профиля формируется с правильным контекстом"""
+        urls = [PROFILE_URL, self.POST_URL]
+        for url in urls:
+            with self.subTest(url=url):
+                self.assertEqual(
+                    self.guest_client.get(url).context['author'].username,
+                    self.user.username
+                )
 
     def test_auth_user_subscribe_unsubscribe(self):
         following_count = Follow.objects.filter(author=self.user,
-                                                user=self.user_2).count()
+                                                user=self.user_2).exists()
         self.authorized_client_2.get(PROFILE_FOLLOW_URL)
         following_count_2 = Follow.objects.filter(author=self.user,
-                                                  user=self.user_2).count()
-        self.assertEqual(following_count + 1, following_count_2)
+                                                  user=self.user_2).exists()
+        with self.subTest():
+            self.assertNotEqual(following_count, following_count_2)
         self.authorized_client_2.get(PROFILE_UNFOLLOW_URL)
         following_count_3 = Follow.objects.filter(author=self.user,
-                                                  user=self.user_2).count()
-        self.assertEqual(following_count_2 - 1, following_count_3)
+                                                  user=self.user_2).exists()
+        with self.subTest():
+            self.assertNotEqual(following_count_2, following_count_3)
 
-    def test_post(self):
-        self.authorized_client_2.get(PROFILE_FOLLOW_URL)
-        self.assertIn(
-            self.post,
-            Post.objects.filter(author__following__user=self.user_2)
+    def test_cache(self):
+        cache.clear()
+        response_cache = cache.get(
+            self.authorized_client.get(INDEX_URL).content
         )
-        self.assertNotIn(
-            self.post,
-            Post.objects.filter(author__following__user=self.user_3)
+        Post.objects.create(
+            text='text',
+            author=self.user,
         )
+        response_2_cache = cache.get(
+            self.authorized_client.get(INDEX_URL).content
+        )
+        self.assertEqual(response_cache, response_2_cache)
+        cache.clear()

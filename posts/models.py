@@ -76,3 +76,13 @@ class Follow(models.Model):
     author = models.ForeignKey(User, verbose_name='Автор',
                                on_delete=models.CASCADE,
                                related_name='following')
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+
+    def __str__(self):
+        return (
+            f'{self.author.username}, '
+            f'{self.user.username}, '
+        )
