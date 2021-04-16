@@ -31,8 +31,10 @@ class PostTests(TestCase):
         cls.guest_client = Client()
         cls.authorized_client = Client()
         cls.authorized_client_2 = Client()
+        cls.authorized_client_3 = Client()
         cls.authorized_client.force_login(cls.user)
         cls.authorized_client_2.force_login(cls.user_2)
+        cls.authorized_client_3.force_login(cls.user_3)
         cls.authorized_client_2.get(PROFILE_FOLLOW_URL)
 
         cls.group = Group.objects.create(
@@ -131,15 +133,15 @@ class PostTests(TestCase):
 
     def test_auth_user_subscribe_unsubscribe(self):
         following_count = Follow.objects.filter(author=self.user,
-                                                user=self.user_2).exists()
-        self.authorized_client_2.get(PROFILE_FOLLOW_URL)
+                                                user=self.user_3).exists()
+        self.authorized_client_3.get(PROFILE_FOLLOW_URL)
         following_count_2 = Follow.objects.filter(author=self.user,
-                                                  user=self.user_2).exists()
+                                                  user=self.user_3).exists()
         with self.subTest():
             self.assertNotEqual(following_count, following_count_2)
-        self.authorized_client_2.get(PROFILE_UNFOLLOW_URL)
+        self.authorized_client_3.get(PROFILE_UNFOLLOW_URL)
         following_count_3 = Follow.objects.filter(author=self.user,
-                                                  user=self.user_2).exists()
+                                                  user=self.user_3).exists()
         with self.subTest():
             self.assertNotEqual(following_count_2, following_count_3)
 

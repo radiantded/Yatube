@@ -38,7 +38,6 @@ def profile(request, username):
     page = Paginator(
         author.posts.all(),
         POSTS_PER_PAGE).get_page(request.GET.get('page'))
-    
     if request.user.is_authenticated:
         following = Follow.objects.filter(author=author,
                                           user=request.user)

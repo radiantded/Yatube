@@ -56,7 +56,9 @@ class URLTests(TestCase):
             }
         )
         cls.POST_EDIT_REDIRECT_URL = f'{LOGIN_URL}?next={cls.POST_EDIT_URL}'
-        cls.ADD_COMMENT_URL = reverse('add_comment', args=[USERNAME, cls.post.id])
+        cls.ADD_COMMENT_URL = reverse(
+            'add_comment', args=[USERNAME, cls.post.id]
+        )
 
     def test_pages_status_codes(self):
         """Ожидаемые коды при открытии страниц авторизованным
