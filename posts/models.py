@@ -83,6 +83,6 @@ class Follow(models.Model):
 
     def __str__(self):
         return (
-            f'{self.author.username}, '
-            f'{self.user.username}, '
+            f'Автор {self.author.username}, '
+            f'Подписчик {self.user.username}, '
         )

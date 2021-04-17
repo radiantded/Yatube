@@ -27,6 +27,14 @@ SMALL_GIF = (
     b'\x02\x00\x01\x00\x00\x02\x02\x0C'
     b'\x0A\x00\x3B'
 )
+BIG_GIF = (
+    b'\x47\x49\x46\x38\x39\x61\x02\x00'
+    b'\x01\x00\x80\x00\x00\x00\x00\x00'
+    b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+    b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+    b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+    b'\x0A\x00\x3B'
+)
 
 
 class PostFormTests(TestCase):
@@ -66,6 +74,15 @@ class PostFormTests(TestCase):
             content=SMALL_GIF,
             content_type='image/gif'
         )
+        cls.uploaded_2 = SimpleUploadedFile(
+            name='BIG_GIF',
+            content=SMALL_GIF,
+            content_type='image/gif'
+        )
+
+        cls.ADD_COMMENT_URL = reverse(
+            'add_comment', args=[USERNAME, cls.post.id]
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -85,28 +102,13 @@ class PostFormTests(TestCase):
             data=form_data,
             follow=True
         )
-        response_2 = self.guest_client.post(
-            NEW_POST_URL,
-            data=form_data,
-            follow=True
-        )
-        self.assertRedirects(response_2, NEW_POST_REDIRECT_URL)
+        page = response.context['page']
         self.assertRedirects(response, INDEX_URL)
-        for post in range(len(response.context['page'])):
-            if response.context['page'][post].id not in posts_ids:
-                new_post = response.context['page'][post]
-                self.assertIn(
-                    new_post,
-                    self.authorized_client_2.get(
-                        FOLLOW_INDEX_URL
-                    ).context['page']
-                )
-                self.assertNotIn(
-                    new_post,
-                    self.authorized_client.get(
-                        FOLLOW_INDEX_URL
-                    ).context['page']
-                )
+        posts_ids_2 = {page[post].id for post in range(len(page))}
+        self.assertEqual(len(list(posts_ids_2 - posts_ids)), 1)
+        for post in range(len(page)):
+            new_post = page[post]
+            if new_post.id not in posts_ids and new_post.id in posts_ids_2:
                 self.assertEqual(new_post.text, form_data['text'])
                 self.assertEqual(new_post.group.id, form_data['group'])
                 self.assertEqual(new_post.author, self.user)
@@ -136,30 +138,44 @@ class PostFormTests(TestCase):
             data=form_data,
             follow=True
         )
+        self.assertRedirects(response, self.POST_URL)
+        posts_count_after_editing = Post.objects.count()
+        self.assertEqual(
+            posts_count, posts_count_after_editing
+        )
+        post = response.context['post']
+        self.assertEqual(post.author, self.user)
+        self.assertEqual(post.text, form_data['text'])
+        self.assertEqual(post.group.id, form_data['group'])
+
+    def test_guest_redirect(self):
+        form_data = {
+            'text': 'Текст',
+            'group': self.group.id,
+            'image': self.uploaded_2
+        }
+        response = self.guest_client.post(
+            NEW_POST_URL,
+            data=form_data,
+            follow=True
+        )
         response_2 = self.guest_client.post(
             self.POST_EDIT_URL,
             data=form_data,
             follow=True
         )
-        self.assertRedirects(response, self.POST_URL)
+        self.assertRedirects(response, NEW_POST_REDIRECT_URL)
         self.assertRedirects(response_2, self.POST_EDIT_REDIRECT_URL)
-        posts_count_after_editing = Post.objects.count()
-        self.assertEqual(
-            posts_count, posts_count_after_editing
-        )
-        self.assertEqual(response.context['post'].author, self.user)
-        self.assertEqual(response.context['post'].text, form_data['text'])
-        self.assertEqual(response.context['post'].group.id, form_data['group'])
 
     def test_add_comment(self):
         comment_count = Comment.objects.count()
         form_data = {
             'text': 'Комментарий',
         }
-        self.guest_client.post(
-            self.POST_URL,
+        self.authorized_client.post(
+            self.ADD_COMMENT_URL,
             data=form_data,
             follow=True
         )
         comment_count_2 = Comment.objects.count()
-        self.assertEqual(comment_count, comment_count_2)
+        self.assertEqual(comment_count + 1, comment_count_2)

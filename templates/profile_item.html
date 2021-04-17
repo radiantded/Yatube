@@ -21,18 +21,16 @@
           </div>
         </li>
         <li class="list-group-item">
-          {% if request.user.username != author.username %}
-            {% if following and request.user.username != author.username %}
-          <a class 
-            href="{% url 'profile_unfollow' author.username %}" role="button"> 
-            Отписаться 
-          </a> 
+          {% if following and request.user != author %}
+            <a class 
+              href="{% url 'profile_unfollow' author.username %}" role="button"> 
+              Отписаться 
+            </a> 
             {% else %}
-          <a class 
-            href="{% url 'profile_follow' author.username %}" role="button">
-            Подписаться 
-          </a>
-            {% endif %}
+            <a class 
+              href="{% url 'profile_follow' author.username %}" role="button">
+              Подписаться 
+            </a>
           {% endif %}
       </li> 
       </ul>

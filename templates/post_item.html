@@ -10,24 +10,22 @@
       <p class="card-text">
         <!-- Ссылка на автора через @ -->
         <a name="post_{{ post.id }}" href="{% url 'profile' post.author.username %}">
-          <strong class="d-block text-gray-dark">@{{ post.author }}</strong>
+          <strong class="d-block text-gray-dark">@{{ post.author.username }}</strong>
         </a>
         {{ post.text|linebreaksbr }}
       </p>
   
-      {% if not group %}
-        {% if post.group %}
+      {% if group_flag and post.group %}
         <a class="card-link muted" href="{% url 'group_posts' post.group.slug %}">
           <small class="text-muted">#{{ post.group.title }}</small>
         </a>
-        {% endif %}
       {% endif %}
   
       <!-- Отображение ссылки на комментарии -->
       <div class="d-flex justify-content-between align-items-center">
         <div class="btn-group">
           <a class="btn btn-sm text-muted" href="{% url 'post' post.author.username post.id %}" role="button">
-            {% if request.user.is_authenticated %}Добавить комментарий{% endif %}
+            {% if request.user.is_authenticated %}Добавить комментарий{% else %}Просмотр записи{% endif %}
           </a>
   
           <!-- Ссылка на редактирование поста для автора -->

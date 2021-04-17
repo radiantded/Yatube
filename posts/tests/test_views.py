@@ -10,7 +10,6 @@ USERNAME = 'Zhorik666'
 USERNAME_2 = 'Sanya_Pudge'
 USERNAME_3 = 'Borodavka'
 NEW_POST_URL = reverse('new_post')
-FOLLOW_INDEX_URL = reverse('follow_index')
 PROFILE_URL = reverse('profile', kwargs={'username': USERNAME})
 PROFILE_FOLLOW_URL = reverse('profile_follow', args=[USERNAME])
 PROFILE_UNFOLLOW_URL = reverse('profile_unfollow', args=[USERNAME])
@@ -36,6 +35,7 @@ class PostTests(TestCase):
         cls.authorized_client_2.force_login(cls.user_2)
         cls.authorized_client_3.force_login(cls.user_3)
         cls.authorized_client_2.get(PROFILE_FOLLOW_URL)
+        cls.FOLLOW_INDEX_URL = reverse('follow_index')
 
         cls.group = Group.objects.create(
             title='Группа',
@@ -66,7 +66,7 @@ class PostTests(TestCase):
             [INDEX_URL, 'page'],
             [PROFILE_URL, 'page'],
             [self.POST_URL, 'post'],
-            [FOLLOW_INDEX_URL, 'page']
+            [self.FOLLOW_INDEX_URL, 'page']
         ]
         for url, context in templates_urls:
             with self.subTest(url=url):
@@ -122,7 +122,7 @@ class PostTests(TestCase):
                 )
 
     def test_templates_expected_author_context(self):
-        """Шаблон страницы профиля формируется с правильным контекстом"""
+        """Шаблоны страниц формируются с правильным контекстом профиля"""
         urls = [PROFILE_URL, self.POST_URL]
         for url in urls:
             with self.subTest(url=url):
@@ -131,31 +131,31 @@ class PostTests(TestCase):
                     self.user.username
                 )
 
-    def test_auth_user_subscribe_unsubscribe(self):
+    def test_auth_user_subscribe(self):
         following_count = Follow.objects.filter(author=self.user,
                                                 user=self.user_3).exists()
         self.authorized_client_3.get(PROFILE_FOLLOW_URL)
         following_count_2 = Follow.objects.filter(author=self.user,
                                                   user=self.user_3).exists()
-        with self.subTest():
-            self.assertNotEqual(following_count, following_count_2)
+        self.assertNotEqual(following_count, following_count_2)
+
+    def test_auth_user_unsubscribe(self):
+        following_count = Follow.objects.filter(author=self.user,
+                                                user=self.user_3).exists()
         self.authorized_client_3.get(PROFILE_UNFOLLOW_URL)
         following_count_3 = Follow.objects.filter(author=self.user,
                                                   user=self.user_3).exists()
-        with self.subTest():
-            self.assertNotEqual(following_count_2, following_count_3)
+        self.assertEqual(following_count, following_count_3)
 
     def test_cache(self):
         cache.clear()
-        response_cache = cache.get(
-            self.authorized_client.get(INDEX_URL).content
-        )
+        response = self.authorized_client.get(INDEX_URL).content
         Post.objects.create(
             text='text',
             author=self.user,
         )
-        response_2_cache = cache.get(
-            self.authorized_client.get(INDEX_URL).content
-        )
-        self.assertEqual(response_cache, response_2_cache)
+        response_2 = self.authorized_client.get(INDEX_URL).content
+        self.assertEqual(response, response_2)
         cache.clear()
+        response_3 = self.authorized_client.get(INDEX_URL).content
+        self.assertNotEqual(response, response_3)

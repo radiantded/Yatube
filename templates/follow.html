@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Подписки{% endblock %}
-<!-- {% load cache %}
+{% load cache %}
 {% cache 20 index_page %}
-{% endcache %}  -->
+{% endcache %} 
 {% block header %}Подписки{% endblock %}
 {% block content %}
 
     <div class="col-md-12">
-        {% include "menu.html" %}
+        {% include "menu.html" with follow=True %}
         {% for post in page %}
             {% include "post_item.html" with post=post %}
             {% if not forloop.last %}{% endif %}

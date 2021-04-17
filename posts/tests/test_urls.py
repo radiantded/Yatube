@@ -80,6 +80,7 @@ class URLTests(TestCase):
             [self.authorized_client, NEW_POST_URL, 200],
             [self.authorized_client, self.POST_EDIT_URL, 200],
             [self.authorized_client, FOLLOW_INDEX_URL, 200],
+            [self.authorized_client, NON_EXISTENT_URL, 404],
         ]
         for client, url, code in data:
             with self.subTest(client=client, url=url, code=code):
@@ -117,7 +118,3 @@ class URLTests(TestCase):
         for client, url, redirect_url in data:
             with self.subTest(redirect_url=redirect_url):
                 self.assertRedirects(client.get(url), redirect_url)
-
-    def test_404(self):
-        self.assertEqual(
-            self.authorized_client.get(NON_EXISTENT_URL).status_code, 404)

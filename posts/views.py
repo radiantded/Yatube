@@ -38,28 +38,23 @@ def profile(request, username):
     page = Paginator(
         author.posts.all(),
         POSTS_PER_PAGE).get_page(request.GET.get('page'))
-    if request.user.is_authenticated:
-        following = Follow.objects.filter(author=author,
-                                          user=request.user)
-        if following.exists():
-            return render(request, 'profile.html', {'author': author,
-                                                    'page': page,
-                                                    'following': following})
+    following = request.user.is_authenticated and Follow.objects.filter(
+        author__username=username,
+        user=request.user
+    ).exists()
     return render(request, 'profile.html', {'author': author,
-                                            'page': page})
+                                            'page': page,
+                                            'following': following})
 
 
 def post_view(request, username, post_id):
     post = get_object_or_404(Post, id=post_id, author__username=username)
     form = CommentForm(request.POST or None)
     comments = Comment.objects.filter(post=post)
-    if not request.user.is_authenticated:
-        return render(request, 'post.html', {'author': post.author,
-                                             'comments': comments,
-                                             'form': form,
-                                             'post': post})
-    following = Follow.objects.filter(author__username=username,
-                                      user=request.user).exists()
+    following = request.user.is_authenticated and Follow.objects.filter(
+        author__username=username,
+        user=request.user
+    ).exists()
     context = {
         'author': post.author,
         'comments': comments,
