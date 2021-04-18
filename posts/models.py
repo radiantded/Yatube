@@ -90,6 +90,3 @@ class Follow(models.Model):
             f'Автор {self.author.username}, '
             f'Подписчик {self.user.username}, '
         )
-
-    class UniqueConstraint:
-        fields = ['user', 'author']
