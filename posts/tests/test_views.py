@@ -3,7 +3,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from posts.models import Post, Group, User, Follow
-from posts.settings import POSTS_PER_PAGE
+from yatube.settings import POSTS_PER_PAGE
 
 
 USERNAME = 'Zhorik666'

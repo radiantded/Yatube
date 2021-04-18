@@ -1,5 +1,5 @@
-from django.db import models
 from django.contrib.auth import get_user_model
+from django.db import models
 
 User = get_user_model()
 
@@ -18,6 +18,11 @@ class Post(models.Model):
                               blank=True, null=True)
     image = models.ImageField(upload_to='posts/', blank=True, null=True)
 
+    class Meta:
+        verbose_name = 'Запись'
+        verbose_name_plural = 'Записи'
+        ordering = ('-pub_date',)
+
     def __str__(self):
         return (
             f'{self.author.username}, '
@@ -25,11 +30,6 @@ class Post(models.Model):
             f'{self.text[:20]}, '
             f'{self.pub_date}'
         )
-
-    class Meta:
-        verbose_name = 'Запись'
-        verbose_name_plural = 'Записи'
-        ordering = ('-pub_date',)
 
 
 class Group(models.Model):
@@ -86,3 +86,6 @@ class Follow(models.Model):
             f'Автор {self.author.username}, '
             f'Подписчик {self.user.username}, '
         )
+
+    class UniqueConstraint:
+        fields = ['user', 'author']
