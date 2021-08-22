@@ -6,20 +6,20 @@ from django.urls import include, path
 
 urlpatterns = [
     path('about/', include('about.urls', namespace='about')),
-    path('auth/', include('users.urls')),
     path('auth/', include('django.contrib.auth.urls')),
-    path("admin/", admin.site.urls),
-    path("", include("posts.urls")),
-    path("", include("users.urls"))
+    path('admin/', admin.site.urls),
+    path('', include('users.urls')),
+    path('', include('posts.urls'))
 ]
 
 
 handler404 = "posts.views.page_not_found"    # noqa
 handler500 = "posts.views.server_error"      # noqa
-if settings.DEBUG:
-    import debug_toolbar
 
-    urlpatterns += (path("__debug__/", include(debug_toolbar.urls)),)
+if settings.DEBUG:
+    # import debug_toolbar
+
+    # urlpatterns += (path("__debug__/", include(debug_toolbar.urls)),)
     urlpatterns += static(settings.MEDIA_URL,
                           document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL,

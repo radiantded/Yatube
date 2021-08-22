@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 '''
 
 import os
+# import locale
+# locale.getdefaultlocale = (lambda *args: ['ru_RU', 'utf8'])
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,7 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'yo)gnl$nycfiy_tn_0*%#zslfyltp%jz_d(((k(5-o1__sx91)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -47,7 +49,7 @@ INSTALLED_APPS = [
     'users',
     'posts',
     'sorl.thumbnail',
-    'debug_toolbar',
+    # 'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -58,7 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    # 'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 INTERNAL_IPS = [
@@ -135,7 +137,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -143,7 +146,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = 'index'
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-# указываем директорию, в которую будут складываться файлы писем
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 CACHES = {
@@ -151,5 +153,5 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
-
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 POSTS_PER_PAGE = 10
