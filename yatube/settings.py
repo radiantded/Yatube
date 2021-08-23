@@ -137,12 +137,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-<<<<<<< HEAD
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-=======
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
->>>>>>> bf4ec37bbed31d47f6cedd8b4426d47fcff317ec
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -164,5 +159,5 @@ POSTS_PER_PAGE = 10
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 DATABASES = {
-    'default': env.db(), # описываем, где искать настройки доступа к базе
+    'default': env.db(),
 } 
